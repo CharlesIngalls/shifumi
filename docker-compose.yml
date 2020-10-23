@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  db:
+    image: mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=docker
+      - MYSQL_DATABASE=docker
+      - MYSQL_USER=docker
+      - MYSQL_PASSWORD=docker
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", 'mysqladmin ping']
+      timeout: 2s
+      retries: 10
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+     - datavol:/var/lib/mysql
+
+  backend:
+    restart: unless-stopped
+    environment:
+      - DEV=false
+      - DB_USER=docker
+      - DB_PASSWORD=docker
+      - DB_NAME=docker
+      - DB_HOST=db
+      - DB_PORT=3306
+    build: ./dummy-rest-api
+    command: bash -c "python dummy-rest-api/manage.py makemigrations && python dummy-rest-api/manage.py migrate && python dummy-rest-api/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/back
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  
+  frontend:
+    build: ./frontend
+    volumes:
+      - .:/front
+    ports:
+      - "8080:80"
+      
+volumes:
+  datavol:
