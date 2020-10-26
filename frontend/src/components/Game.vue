@@ -16,9 +16,9 @@
         </div>
 
         <div>
-            <div v-for="(round, i) in game.old_rounds" :key="round.id">
+            <div v-for="(round, i) in game.old_rounds.slice().reverse()" :key="round.id">
                 <hr>
-                <p>Round {{i}}: {{get_winner(round)}}</p>
+                <p>Round {{game.old_rounds.length - i}}: {{get_winner(round)}}</p>
                 <p>Player A played {{get_choice_A(round)}}</p>
                 <p>Player B played {{get_choice_B(round)}}</p>
             </div>
@@ -81,7 +81,11 @@
         mounted() {
             if (!this.is_loaded) {
                 this.load_game()
+                window.setInterval(() => {
+                    this.load_game()
+                }, 30000)
             }
+
         }
     }
 </script>
