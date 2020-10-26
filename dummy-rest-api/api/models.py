@@ -12,6 +12,8 @@ class Game(models.Model):
     is_started = models.BooleanField(default=False)
     access_a = models.IntegerField(default=randomint)
     access_b = models.IntegerField(default=randomint)
+    points_to_win = models.IntegerField(default=3)
+    is_over = models.BooleanField(default=False)
 
     def get_active_round_id(self):
         round = Round.objects.filter(game__id=self.id).filter(over=False).first()

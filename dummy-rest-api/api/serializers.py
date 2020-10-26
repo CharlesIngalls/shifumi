@@ -25,10 +25,14 @@ class GameSerializer(serializers.ModelSerializer):
 
     def get_can_A_play(self, obj):
         round = Round.objects.filter(game_id=obj.id).filter(over=False).first()
+        if round is None: # game over
+            return False
         return not round.a_has_played
 
     def get_can_B_play(self, obj):
         round = Round.objects.filter(game_id=obj.id).filter(over=False).first()
+        if round is None: # game over
+            return False
         return not round.b_has_played
 
     def create(self, validated_data):
@@ -38,7 +42,8 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['id', 'is_started', 'access_a', 'access_b', 'is_started', 'old_rounds', 'can_A_play', 'can_B_play']
+        fields = ['id', 'is_started', 'access_a', 'access_b', 'points_to_win', 'is_started', 'old_rounds',
+                  'can_A_play', 'can_B_play', 'is_over']
 
 
 class RoundSerializer(serializers.ModelSerializer):
@@ -80,7 +85,7 @@ class ChoiceSerializer(serializers.ModelSerializer):
 
         choice = Choice.objects.create(**validated_data)
 
-        if Choice.objects.filter(round_id=round.id).count() == 2:
+        if Choice.objects.filter(round_id=round.id).count() == 2: # if both players played
 
             other_choice = Choice.objects.filter(round_id=round.id).exclude(id=choice.id).first()
 
@@ -96,9 +101,32 @@ class ChoiceSerializer(serializers.ModelSerializer):
             if choice.choice_played == Choice.Type.SCISSOR and other_choice.choice_played == Choice.Type.PAPER:
                 if is_player_A:
                     round.is_A_winner = True
+            if choice.choice_played == Choice.Type.PAPER and other_choice.choice_played == Choice.Type.SCISSOR:
+                if not is_player_A:
+                    round.is_A_winner = True
+            if choice.choice_played == Choice.Type.ROCK and other_choice.choice_played == Choice.Type.PAPER:
+                if not is_player_A:
+                    round.is_A_winner = True
+            if choice.choice_played == Choice.Type.SCISSOR and other_choice.choice_played == Choice.Type.ROCK:
+                if not is_player_A:
+                    round.is_A_winner = True
             round.over = True
-            Round.objects.create(game=round.game)
         round.save()
+
+        rounds = Round.objects.filter(game_id=game.id).filter(over=True)
+
+        nb_rounds_won_by_A = len([round for round in rounds if round.is_A_winner])
+        nb_rounds_won_by_B = len([round for round in rounds if not round.is_A_winner and not round.is_draw])
+
+        print(nb_rounds_won_by_A)
+        print(nb_rounds_won_by_B)
+
+        if nb_rounds_won_by_A >= game.points_to_win or nb_rounds_won_by_B >= game.points_to_win:
+            game.is_over = True
+            game.save()
+
+        if not game.is_over and Choice.objects.filter(round_id=round.id).count() == 2:
+            Round.objects.create(game=round.game)
 
         return choice
 

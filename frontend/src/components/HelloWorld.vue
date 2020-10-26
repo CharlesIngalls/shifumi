@@ -1,6 +1,7 @@
 <template>
     <div class="main">
         <button v-on:click="create_game">New Game</button>
+        <p>First player to win 3 rounds wins the game.</p>
         <div v-if="is_game_created" class="url_sessions">
             <p>You're the player A. Use this link: {{this.$domain + '/' + access_a}}</p>
             <p>Send this link to the player B: {{this.$domain + '/' + access_b}}</p>

@@ -1,13 +1,18 @@
 <template>
     <div v-if="is_loaded">
+
         <div v-if="can_play()">
-            <button v-on:click="play('ROCK')">Rock</button>
-            <button v-on:click="play('PAPER')">Paper</button>
-            <button v-on:click="play('SCISSOR')">Scissor</button>
+            <img v-on:click="play('ROCK')" src="img/rock.png" alt="Example" />
+            <img v-on:click="play('PAPER')" src="img/paper.png" alt="Example" />
+            <img v-on:click="play('SCISSOR')" src="img/scissors.png" alt="Example" />
+        </div>
+
+        <div v-else-if="game.is_over == false">
+            <p> You can't play for the moment. Wait for you opponent to play.</p>
         </div>
 
         <div v-else>
-            <p> You can't play for the moment. Wait for you opponent to play.</p>
+            <p> Game is over.</p>
         </div>
 
         <div>
